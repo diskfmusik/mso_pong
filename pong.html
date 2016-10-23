@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<title>mso_pong</title>
+
+<style>
+canvas {
+    background: black;
+}
+</style>
+
+<!-- audio
+-->
+
+<canvas width="600" height="400"></canvas>
+
+<!--
+<script src="explode.js"></script>
+<script src="scoreObj.js"></script>
+-->
+
+<script src="player.js"></script>
+
+<script>
+
+"use strict";
+
+//---------------------------------------------------------
+// gv
+
+
+
+//---------------------------------------------------------
+//
+
+function random_range(min, max)
+{
+    var r =  Math.floor( min + Math.random() * (max + 1) );
+//    console.log('min:' + min + ' max:' + max + ' r:' + r);
+    return r;
+}
+
+//---------------------------------------------------------
+// main
+
+window.onload = function() {
+
+    var canvas = document.getElementsByTagName('canvas')[0];
+    var ctx = canvas.getContext('2d');
+
+    var w = canvas.width;
+    var h = canvas.height;
+
+    var Status = { title:0, toStart:1, countDown:2,
+                   inGame:3, gameClear:4, dying:5, gameOver:6 };
+    var status = Status.title;
+
+    var count;
+
+// 600, 400
+
+    var player0 = new Player(canvas, 100, 200, 0);
+    var player1 = new Player(canvas, 500, 200, 1);
+
+    var keys = [];
+    document.onkeydown = function(e) {
+        if (!keys[e.keyCode]) keys[e.keyCode] = 0;
+        keys[e.keyCode]++;
+    };
+    document.onkeyup = function(e) {
+        keys[e.keyCode] = 0;
+    };
+
+    var startTick = Date.now();
+    var tick = startTick;
+    var prevTick;
+
+    (function loop() {
+
+        prevTick = tick;
+        tick = Date.now();
+
+        ctx.save();
+        ctx.clearRect(0, 0, w, h);
+
+        if (keys[32 /*space*/] == 1) {
+            if (status == Status.title) {
+                status = Status.toStart;
+//                muteSE = false;
+            }
+            if (status == Status.gameOver) {
+                status = Status.title;
+            }
+            if (status == Status.gameClear) {
+                status = Status.toStart;
+//                muteSE = false;
+            }
+            keys[32]++; // pretend key repeat
+        }
+
+        var msg;
+        var drawPlayer = false;
+        var drawStatus = false;
+        var drawScoreObj = false;
+
+        switch (status) {
+        case Status.title:
+            msg = 'Press space to start';
+            break;
+        case Status.toStart:
+            status = Status.countDown;
+            count = 3;
+            (function() {
+                setTimeout(function loop() {
+                    if (--count < 0) {
+                        status = Status.inGame;
+                    } else {
+                        setTimeout(loop, 1000);
+                    }
+                }, 1000);
+            })();
+            //break; // intentionally fall through
+        case Status.countDown:
+            msg = "" + count;
+            drawPlayer = true;
+            drawStatus = true;
+            break;
+        case Status.inGame:
+            drawScoreObj = true;
+            drawPlayer = true;
+            drawStatus = true;
+            break;
+        case Status.gameClear:
+            msg = 'GAME CLEAR!!!';
+            drawScoreObj = true;
+            drawPlayer = true;
+            drawStatus = true;
+            break;
+        case Status.dying:
+//            explode.draw(ctx, myX, myY);
+//            if (!explode.update()) {
+                status = Status.gameOver;
+//                muteSE = true;
+//            }
+            drawScoreObj = true;
+            drawStatus = true;
+            break;
+        case Status.gameOver:
+            msg = 'GAME OVER';
+            drawScoreObj = true;
+            drawStatus = true;
+            break;
+        default:
+            console.log('unknown status: ' + status);
+        }
+
+
+        if(drawPlayer) {
+            player0.update(keys);
+            player1.update(keys);
+
+            player0.draw();
+            player1.draw();
+        }
+
+
+        if (msg) {
+            ctx.font = '40pt Calibri';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(msg, canvas.width/2, canvas.height/2);
+        }
+
+        ctx.restore();
+
+        requestAnimationFrame(loop);
+    })();
+};
+
+</script>
