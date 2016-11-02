@@ -17,6 +17,7 @@ canvas {
 <script src="explode.js"></script>
 <script src="scoreObj.js"></script>
 -->
+<script src="util.js"></script>
 
 <script src="player.js"></script>
 
@@ -60,27 +61,60 @@ function Bullet(canvas, x, y)
     var h = 10;
 
     var spd = 3;
-    var th = -PI / 2;
+    var th;
+
+    function init() {
+        //th = -PI/2; // left
+        //th = 0; // down
+
+        //th = random_range(0, PI); // âEîºï™
+        //th = random_range(PI, PI*2); // ç∂îºï™
+
+        th = random_range(0, PI*2);
+        console.log("th :" + th);
+
+    }
+    init();
 
     this.move = function() {
-//(th=0):down
         x += spd * Math.sin(th);
         y += spd * Math.cos(th);
+    }
+
+    this.hit = function() {
+// right player goal
+        if(x < 100) {
+        }
+
+// left player goal
+        if(x > 500) {
+        }
 
     }
 
     this.reflect = function() {
-
-        if(x < 100) {
-// right player goal
+// up
+        if(y < 0) {
+            if(th < PI) { th = PI*0 + (PI - th); } // dir:up_right
+            else        { th = PI*2 - (th - PI); } // dir:up_left
+        }
+// down
+        if(y > canvas.height) {
+            if(th > PI) { th = PI + (PI*2 - th); } // dir:down_left
+            else        { th = PI - (th - PI*0); } // dir:down_right
         }
 
-        if(x > 500) {
-// left player goal
+// left
+        if(x < 0) {
+            if(th < PI/2 * 3) { th = PI/2 + (PI/2 * 3 - th); } // dir:left_up
+            else              { th = PI/2 - (th - PI/2 * 3); } // dir:left_down
+        }
+// right
+        if(x > canvas.width ) {
+            if(th < PI/2) { th = PI/2 * 3 + (PI/2 - th); } // dir:right_down
+            else          { th = PI/2 * 3 - (th - PI/2); } // dir:right_up
         }
 
-// game set
-//        if(x < 0 || x > canvas.width) th += PI;
     }
 
     this.update = function() {

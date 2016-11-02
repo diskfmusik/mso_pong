@@ -2,7 +2,7 @@ function Player(canvas, x, y, num)
 {
     var w = 10;
     var h = 30;
-    var margin = 50;
+    var margin = 30;
 
     var UpMax = h/2 + margin;
     var DownMax = (canvas.height - margin) - h/2;
