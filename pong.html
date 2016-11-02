@@ -27,16 +27,84 @@ canvas {
 //---------------------------------------------------------
 // gv
 
+var PI = 3.14;
+var players = [];
 
+var playerScores;
 
-//---------------------------------------------------------
-//
-
-function random_range(min, max)
+function Score(canvas, num)
 {
-    var r =  Math.floor( min + Math.random() * (max + 1) );
-//    console.log('min:' + min + ' max:' + max + ' r:' + r);
-    return r;
+    var score = 0;
+
+    var x;
+    function init() {
+        if(num == 0) x = 150;
+        else         x = canvas.width - 150;
+    }
+    init();
+
+    this.draw = function(ctx) {
+        ctx.font = '40pt Calibri';
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        var s = score;
+        ctx.fillText(s, x, 50);
+    }
+
+}
+
+function Bullet(canvas, x, y)
+{
+    var w = 10;
+    var h = 10;
+
+    var spd = 3;
+    var th = -PI / 2;
+
+    this.move = function() {
+//(th=0):down
+        x += spd * Math.sin(th);
+        y += spd * Math.cos(th);
+
+    }
+
+    this.reflect = function() {
+
+        if(x < 100) {
+// right player goal
+        }
+
+        if(x > 500) {
+// left player goal
+        }
+
+// game set
+//        if(x < 0 || x > canvas.width) th += PI;
+    }
+
+    this.update = function() {
+        this.move();
+        this.reflect();
+
+    }
+
+    this.draw = function(ctx) {
+        ctx.beginPath();
+        ctx.fillStyle = 'white';
+        ctx.moveTo(x + w/2, y - h/2);
+        ctx.lineTo(x + w/2, y + h/2);
+        ctx.lineTo(x - w/2, y + h/2);
+        ctx.lineTo(x - w/2, y - h/2);
+        ctx.fill();
+    }
+
+}
+
+function init(canvas) {
+    playerScores = [];
+    playerScores.push(new Score(canvas, 0));
+    playerScores.push(new Score(canvas, 1));
 }
 
 //---------------------------------------------------------
@@ -50,16 +118,17 @@ window.onload = function() {
     var w = canvas.width;
     var h = canvas.height;
 
-    var Status = { title:0, toStart:1, countDown:2,
-                   inGame:3, gameClear:4, dying:5, gameOver:6 };
+    var Status = { title:0, inGame:1, gameClear:2, dying:3, gameOver:4 };
     var status = Status.title;
 
     var count;
 
 // 600, 400
 
-    var player0 = new Player(canvas, 100, 200, 0);
-    var player1 = new Player(canvas, 500, 200, 1);
+    players.push(new Player(canvas, 100, 200, 0));
+    players.push(new Player(canvas, 500, 200, 1));
+
+    var bullet = new Bullet(canvas, 300, 200);
 
     var keys = [];
     document.onkeydown = function(e) {
@@ -84,14 +153,14 @@ window.onload = function() {
 
         if (keys[32 /*space*/] == 1) {
             if (status == Status.title) {
-                status = Status.toStart;
+                status = Status.inGame;
 //                muteSE = false;
             }
             if (status == Status.gameOver) {
                 status = Status.title;
             }
             if (status == Status.gameClear) {
-                status = Status.toStart;
+                status = Status.title;
 //                muteSE = false;
             }
             keys[32]++; // pretend key repeat
@@ -105,24 +174,7 @@ window.onload = function() {
         switch (status) {
         case Status.title:
             msg = 'Press space to start';
-            break;
-        case Status.toStart:
-            status = Status.countDown;
-            count = 3;
-            (function() {
-                setTimeout(function loop() {
-                    if (--count < 0) {
-                        status = Status.inGame;
-                    } else {
-                        setTimeout(loop, 1000);
-                    }
-                }, 1000);
-            })();
-            //break; // intentionally fall through
-        case Status.countDown:
-            msg = "" + count;
-            drawPlayer = true;
-            drawStatus = true;
+            init(canvas);
             break;
         case Status.inGame:
             drawScoreObj = true;
@@ -155,11 +207,19 @@ window.onload = function() {
 
 
         if(drawPlayer) {
-            player0.update(keys);
-            player1.update(keys);
 
-            player0.draw();
-            player1.draw();
+            players.forEach(function(player) {
+                player.update(keys);
+                player.draw(ctx);
+            });
+
+            bullet.update();
+            bullet.draw(ctx);
+
+            playerScores.forEach(function(score) {
+                score.draw(ctx);
+            });
+
         }
 
 
