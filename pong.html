@@ -13,13 +13,9 @@ canvas {
 
 <canvas width="600" height="400"></canvas>
 
-<!--
-<script src="explode.js"></script>
-<script src="scoreObj.js"></script>
--->
 <script src="util.js"></script>
-
 <script src="player.js"></script>
+<script src="score.js"></script>
 
 <script>
 
@@ -32,28 +28,6 @@ var PI = 3.14;
 var players = [];
 
 var playerScores;
-
-function Score(canvas, num)
-{
-    var score = 0;
-
-    var x;
-    function init() {
-        if(num == 0) x = 150;
-        else         x = canvas.width - 150;
-    }
-    init();
-
-    this.draw = function(ctx) {
-        ctx.font = '40pt Calibri';
-        ctx.fillStyle = 'white';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        var s = score;
-        ctx.fillText(s, x, 50);
-    }
-
-}
 
 function Bullet(canvas, x, y)
 {
@@ -81,7 +55,25 @@ function Bullet(canvas, x, y)
         y += spd * Math.cos(th);
     }
 
-    this.hit = function() {
+    this.hit = function(players) {
+
+        players.forEach(function(player) {
+
+            if(isHitQuad(player, x, y)) {
+
+                if(player.getType() == "left") {
+                    if(th < PI/2 * 3) { th = PI/2 + (PI/2 * 3 - th); } // dir:left_up
+                    else              { th = PI/2 - (th - PI/2 * 3); } // dir:left_down
+                }
+                else {
+                    if(th < PI/2) { th = PI/2 * 3 + (PI/2 - th); } // dir:right_down
+                    else          { th = PI/2 * 3 - (th - PI/2); } // dir:right_up
+                }
+            }
+
+        });
+
+
 // right player goal
         if(x < 100) {
         }
@@ -121,6 +113,8 @@ function Bullet(canvas, x, y)
         this.move();
         this.reflect();
 
+        this.hit(players);
+
     }
 
     this.draw = function(ctx) {
@@ -159,8 +153,8 @@ window.onload = function() {
 
 // 600, 400
 
-    players.push(new Player(canvas, 100, 200, 0));
-    players.push(new Player(canvas, 500, 200, 1));
+    players.push(new Player(canvas, 100, 200, "left"));
+    players.push(new Player(canvas, 500, 200, "right"));
 
     var bullet = new Bullet(canvas, 300, 200);
 
